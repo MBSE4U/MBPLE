@@ -23,21 +23,29 @@
 package <FM> DroneProductLineFeatureModel {
     private import PLEML::*;
 
-    #featureConfiguration deliveryDrone {
-        #feature :>> selection :> droneProductLineFeatureTree {
+    #featureConfiguration def DeliveryDrone {
+        #feature :>> selection : DroneProductLineFeatureTree {
             #feature :>> battery = battery.longDistanceBattery.sustainableBattery;
+            #feature :>> chargingStrategy = chargingStrategy.powerCharging;
+        }
+    }
+
+    #featureConfiguration def ObservationDrone {
+        #feature :>> selection : DroneProductLineFeatureTree {
+            #feature :>> battery = battery.longDistanceBattery.powerBattery;
             #feature :>> chargingStrategy = chargingStrategy.powerCharging;
             #feature :>> flightStrategies = (flightStrategies.observationPatterns, flightStrategies.cameraPatterns);
         }
     }
 
-    #feature <ft> droneProductLineFeatureTree {    
+
+    #feature def <ft> DroneProductLineFeatureTree {    
         #feature battery {
             #feature standardBattery;
             #feature longDistanceBattery {
                 attribute :>> bindingTime = LifeCycleKind::Operation;
                 #feature powerBattery {
-                    #requiresFeatures powerCharging {
+                    :>> requiredFeatures {
                       in :>> requiredFeatures = (chargingStrategy.powerCharging);
                     }
                 }

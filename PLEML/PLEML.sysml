@@ -29,7 +29,7 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
          * Copyright 2024 Tim Weilkiens, Marco Forlingieri, Vince Molnar
          * 
          */
-    private import CollectionFunctions::*;   
+    private import SequenceFunctions::*;   
 
     occurrence def FeatureConfiguration {
         doc /*
@@ -74,6 +74,9 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
         assert constraint featureConstraints[*] : FeatureConstraint {
             doc /* Set of all feature constraints of the feature. */
         }
+        assert constraint requiredFeatures : RequiresConstraint :> featureConstraints;
+        assert constraint xorFeatures : XORConstraint :> featureConstraints;
+        
         assert constraint {
             doc /* All subitems of a feature shall be typed by PLEFeature. */
             subFeatures->ControlFunctions::forAll{ in i; i istype Feature}
@@ -105,17 +108,19 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
     }
 
     constraint def RequiresConstraint :> FeatureConstraint {
-        in requiredFeatures :> constrainedFeatures;
-        featureConfiguration.suboccurrences->contains(self) 
-            implies featureConfiguration.suboccurrences->containsAll(requiredFeatures)       
+        in requires :> constrainedFeatures;
+        in :>> featureConfiguration;
+        featureConfiguration.suboccurrences->includes(self) 
+            implies featureConfiguration.suboccurrences->includes(requires)       
     }
     constraint requiresConstraints[*] : RequiresConstraint;
 
     constraint def XORConstraint :> FeatureConstraint {
-        in xorFeatures :> constrainedFeatures;
-        featureConfiguration.selection.suboccurrences->contains(self) 
-            implies (1..size(xorFeatures)-1)->ControlFunctions::forAll { 
-                in f; not featureConfiguration.selection.suboccurrences->contains(f) 
+        in occurrence excluded :> constrainedFeatures;
+        in occurrence :>> featureConfiguration;
+        featureConfiguration.selection.suboccurrences->includes(self) 
+            implies (1..size(excluded)-1)->ControlFunctions::forAll { 
+                in f; not featureConfiguration.selection.suboccurrences->includes(f) 
             }
     }
     constraint xorConstraints[*] : XORConstraint;
