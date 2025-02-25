@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SysML v2 Feature Modeling</title>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            input, button, select {
+                margin: 10px 0;
+                padding: 10px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .section {
+                margin-top: 20px;
+            }
+            pre {
+                background: #f4f4f4;
+                padding: 10px;
+                border-radius: 5px;
+            }
+            #graphical_tree {
+                margin-top: 20px;
+            }
+            .node circle {
+                fill: #999;
+                stroke: #000;
+                stroke-width: 2px;
+            }
+            .node text {
+                font: 12px sans-serif;
+            }
+            .link {
+                fill: none;
+                stroke: #555;
+                stroke-width: 2px;
+            }
+        </style>
+    </head>
+    <body>
+    <h1>SysML v2 API Feature Modeling Demonstrator</h1>
+
+    <!-- Server URL Section -->
+    <div class="section">
+        <label for="server_url">Enter SysML v2 Repository Server URL:</label>
+        <input type="text" id="server_url" placeholder="Enter server URL (e.g., http://example.com)" />
+        <button onclick="queryProjects()">Get Projects</button>
+    </div>
+
+    <!-- Projects Section -->
+    <div class="section" id="projects_section" style="display: none;">
+        <h2>Select or Enter a Project ID</h2>
+        <label for="project_list">Available Projects:</label>
+        <select id="project_list" onchange="storeSelectedProjectId()">
+            <option value="">-- Select a Project --</option>
+        </select>
+        <p>Or manually enter the Project ID:</p>
+        <input type="text" id="manual_project_id" placeholder="Enter Project ID manually" oninput="storeManualProjectId()" />
+        <p id="selected_project_display" style="font-weight: bold; color: blue;"></p>
+    </div>    
+
+    <!-- Commits Section -->
+    <div class="section" id="commits_section" style="display: none;">
+        <h2>Select a Commit</h2>
+        <label for="commit_list">Available Commits:</label>
+        <select id="commit_list" onchange="storeSelectedCommitId()">
+            <option value="">-- Select a Commit --</option>
+        </select>
+        <p id="selected_commit_display" style="font-weight: bold; color: green;"></p>
+    </div>
+
+    <!-- Features Section -->
+    <div class="section" id="features_section" style="display: none;">
+        <button onclick="queryFeatures()">Query Features</button>
+        <!-- Progress bar -->
+        <div id="progress_bar_feature_container" style="display: none; margin: 10px 0; width: 100%; background: #f4f4f4; border: 1px solid #ccc; border-radius: 5px;">
+            <div id="progress_feature_bar" style="height: 20px; width: 0%; background: #4caf50; border-radius: 5px;"></div>
+        </div>
+        <h2>Textual Feature Tree</h2>
+        <pre id="textual_feature_tree"></pre>        
+    </div>
+
+    <!-- Feature Configurations Section -->
+    <div class="section" id="feature_configurations_section" style="display: none;">
+        <button onclick="queryFeatureConfigurations()">Query Feature Configurations</button>
+        <!-- Progress bar -->
+        <div id="progress_bar_feature_configuration_container" style="display: none; margin: 10px 0; width: 100%; background: #f4f4f4; border: 1px solid #ccc; border-radius: 5px;">
+            <div id="progress_feature_configuration_bar" style="height: 20px; width: 0%; background: #4caf50; border-radius: 5px;"></div>
+        </div>
+        <h2>Textual Feature Configuration Tree</h2>
+        <pre id="textual_feature_configuration_tree"></pre>        
+    </div>
+
+    <!-- AI Section -->
+    <div class="section" id="ai_section" style="display: block;">
+        <button id="analyze_ai_button" onclick="analyzeWithAI()">Analyze with AI</button>
+        <h2>AI Analysis</h2>
+        <pre id="ai_analysis_output"></pre>
+    </div>
+
+    <script>
+
+        let plemlDefinitions = {};
+
+        async function queryProjects() {
+            const serverUrl = document.getElementById('server_url').value;
+            const projectList = document.getElementById('project_list');
+            const projectsSection = document.getElementById('projects_section');
+
+            projectList.innerHTML = '<option value="">-- Select a Project --</option>';
+            projectsSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ server_url: serverUrl })
+                });
+
+                if (response.ok) {
+                    const projects = await response.json();
+                    projects.forEach(project => {
+                        const option = document.createElement('option');
+                        option.value = project['@id'];
+                        option.text = project.name || project['@id'];
+                        projectList.appendChild(option);
+                    });
+                    projectsSection.style.display = 'block';
+                } else {
+                    alert('Failed to retrieve projects');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function queryCommits() {
+            const serverUrl = document.getElementById('server_url').value;
+            const projectId = document.getElementById('project_list').value || document.getElementById('manual_project_id').value;
+            const commitList = document.getElementById('commit_list');
+            const commitsSection = document.getElementById('commits_section');
+
+            commitList.innerHTML = '<option value="">-- Select a Commit --</option>';
+            commitsSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/commits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ server_url: serverUrl, project_id: projectId })
+                });
+
+                if (response.ok) {
+                    const commits = await response.json();
+                    commits.forEach(commit => {
+                        const option = document.createElement('option');
+                        option.value = commit['@id'];
+                        option.text = commit.name || commit['@id'];
+                        commitList.appendChild(option);
+                    });
+                    commitsSection.style.display = 'block';
+                } else {
+                    alert('Failed to retrieve commits');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function analyzeWithAI() {
+            // 1. Get the textual feature tree content
+            const featureTreeContent = document.getElementById('textual_tree').textContent;
+
+            // 2. POST it to a new endpoint that calls OpenAI
+            try {
+                const response = await fetch('/api/openai-analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ featureTree: featureTreeContent })
+                });
+
+                if (!response.ok) {
+                // e.g. 500 or 400
+                const errData = await response.json();
+                alert(`OpenAI Analysis Error: ${errData.error || 'Unknown error'}`);
+                return;
+                }
+
+                // 3. Show the AI’s analysis in the <pre> block
+                const data = await response.json();
+                document.getElementById('ai_analysis_output').textContent = data.aiAnalysis || 'No analysis data returned.';
+                
+            } catch (error) {
+                alert(`Failed to analyze with AI: ${error.message}`);
+            }
+        }
+
+
+        function storeSelectedProjectId() {
+            const projectId = document.getElementById('project_list').value;
+            document.getElementById('selected_project_display').textContent = `Selected Project ID: ${projectId}`;
+            queryCommits();
+        }
+
+        function storeManualProjectId() {
+            const projectId = document.getElementById('manual_project_id').value;
+            document.getElementById('selected_project_display').textContent = `Selected Project ID: ${projectId}`;
+            queryCommits();
+        }
+
+        function storeSelectedCommitId() {
+            const commitId = document.getElementById('commit_list').value;
+            const selectedCommitDisplay = document.getElementById('selected_commit_display');
+            const featuresSection = document.getElementById('features_section');
+            const featureConfigurationsSection = document.getElementById('feature_configurations_section');
+
+            if (commitId) {
+                selectedCommitDisplay.textContent = `Selected Commit ID: ${commitId}`;
+                featuresSection.style.display = 'block'; // Show features section
+                featureConfigurationsSection.style.display = 'block';
+            } else {
+                selectedCommitDisplay.textContent = '';
+                featuresSection.style.display = 'none'; // Hide features section if no commit is selected
+                featureConfigurationsSection.style.display = 'none';
+            }
+        }
+
+        async function queryFeatures() {
+            console.log("queryFeatures() called"); // Debug log
+            const serverUrl = document.getElementById("server_url").value;
+            const projectId = document.getElementById('project_list').value || document.getElementById('manual_project_id').value;
+            const commitId = document.getElementById("commit_list").value;
+            const featureTreeElem = document.getElementById("textual_feature_tree");
+
+            featureTreeElem.textContent = "";
+
+            if (!serverUrl || !projectId || !commitId) {
+                alert("Please provide Server URL, Project ID, and Commit ID.");
+                return;
+            }
+
+            // Show progress bar
+            const progressBarContainer = document.getElementById("progress_bar_feature_container");
+            const progressBar = document.getElementById("progress_feature_bar");
+            progressBarContainer.style.display = "block";
+            progressBar.style.width = "0%";
+
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 200);
+
+            const postBody = {
+                server_url: serverUrl,
+                project_id: projectId,
+                commit_id: commitId,
+                response_kind: "features",
+                response_format: "text"
+            };
+
+            try {
+                const response = await fetch("/api/query-features", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(postBody)
+                });
+
+                clearInterval(interval);
+                progressBar.style.width = "100%";
+
+                const data = await response.json();
+                if (!response.ok) {
+                    featureTreeElem.textContent =
+                        `Error querying features: ${data.error || "Unknown error"}\n` +
+                        `Details: ${data.details || ''}`;
+                    return;
+                }
+
+                // Display the textual tree if present
+                if (data.textual_tree) {
+                    featureTreeElem.textContent = data.textual_tree;
+                } else {
+                    featureTreeElem.textContent = "No textual_feature_tree returned.";
+                }
+            } catch (err) {
+                featureTreeElem.textContent = "Error calling /api/query-features: " + err.message;
+            } finally {
+                // Hide progress bar after completion
+                progressBarContainer.style.display = "none";
+            }
+        }
+
+        async function queryFeatureConfigurations() {
+            console.log("queryFeatureConfigurations() called"); // Debug log
+            const serverUrl = document.getElementById("server_url").value;
+            const projectId = document.getElementById('project_list').value || document.getElementById('manual_project_id').value;
+            const commitId = document.getElementById("commit_list").value;
+            const featureTreeElem = document.getElementById("textual_feature_configuration_tree");
+
+            featureTreeElem.textContent = "";
+
+            if (!serverUrl || !projectId || !commitId) {
+                alert("Please provide Server URL, Project ID, and Commit ID.");
+                return;
+            }
+
+            // Show progress bar
+            const progressBarContainer = document.getElementById("progress_bar_feature_configuration_container");
+            const progressBar = document.getElementById("progress_feature_configuration_bar");
+            progressBarContainer.style.display = "block";
+            progressBar.style.width = "0%";
+
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 10;
+                    progressBar.style.width = `${progress}%`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 200);
+
+            const postBody = {
+                server_url: serverUrl,
+                project_id: projectId,
+                commit_id: commitId,
+                response_kind: "feature_configurations",
+                response_format: "text"
+            };
+
+            try {
+                const response = await fetch("/api/query-features", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(postBody)
+                });
+
+                clearInterval(interval);
+                progressBar.style.width = "100%";
+
+                const data = await response.json();
+                if (!response.ok) {
+                    featureTreeElem.textContent =
+                        `Error querying features: ${data.error || "Unknown error"}\n` +
+                        `Details: ${data.details || ''}`;
+                    return;
+                }
+
+                // Display the textual tree if present
+                if (data.textual_tree) {
+                    featureTreeElem.textContent = data.textual_tree;
+                } else {
+                    featureTreeElem.textContent = "No textual_feature_configuration_tree returned.";
+                }
+            } catch (err) {
+                featureTreeElem.textContent = "Error calling /api/query-features: " + err.message;
+            } finally {
+                // Hide progress bar after completion
+                progressBarContainer.style.display = "none";
+            }
+        }
+
+    </script>
+</body>
+</html>
+

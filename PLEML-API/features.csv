@@ -1,0 +1,13 @@
+id,name,is_root,parent_id
+44af5683-69f8-4262-811b-242b35c2187c,DroneProductLineFeatureTree,True,
+635c79f6-7b36-47ec-ae69-f75f8344c8af,battery,False,44af5683-69f8-4262-811b-242b35c2187c
+1c9387cc-14d3-472b-a492-f9707e93924b,standardBattery,False,635c79f6-7b36-47ec-ae69-f75f8344c8af
+1b0e8865-bd0e-4e59-b1af-5697917f1f04,longDistanceBattery,False,635c79f6-7b36-47ec-ae69-f75f8344c8af
+8cb2d589-af7d-41e9-b48b-ae2ccad13540,powerBattery,False,1b0e8865-bd0e-4e59-b1af-5697917f1f04
+7cbf37cd-be99-4923-97b9-32889e08942c,sustainableBattery,False,1b0e8865-bd0e-4e59-b1af-5697917f1f04
+77b34e8b-52dc-451d-81dc-a95d241c7936,chargingStrategy,False,44af5683-69f8-4262-811b-242b35c2187c
+ae0ddfd6-e791-45eb-99d1-72ab84b359bb,standardCharging,False,77b34e8b-52dc-451d-81dc-a95d241c7936
+c46b92d0-e30b-4a60-9b63-cd2dfc3de970,powerCharging,False,77b34e8b-52dc-451d-81dc-a95d241c7936
+2c195921-d52d-449c-b080-e63c55fedcc3,flightStrategies,False,44af5683-69f8-4262-811b-242b35c2187c
+b13a33d2-73e5-453f-8fcd-b02f2fa70fec,observationPatterns,False,2c195921-d52d-449c-b080-e63c55fedcc3
+d5bb1c0c-a15a-4f27-9458-9965a8f49dd9,cameraPatterns,False,2c195921-d52d-449c-b080-e63c55fedcc3

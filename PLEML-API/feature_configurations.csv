@@ -1,0 +1,12 @@
+id,name,is_root,parent_id
+8ef409ac-3fda-4c45-88c1-9367d95bd8dd,ObservationDrone,True,
+e6abd357-f30b-4044-ac60-fcad35098da9,battery,False,8ef409ac-3fda-4c45-88c1-9367d95bd8dd
+8cb2d589-af7d-41e9-b48b-ae2ccad13540,powerBattery,False,e6abd357-f30b-4044-ac60-fcad35098da9
+09e6acb5-6fd5-40d6-802a-aa370b181103,chargingStrategy,False,8ef409ac-3fda-4c45-88c1-9367d95bd8dd
+c46b92d0-e30b-4a60-9b63-cd2dfc3de970,powerCharging,False,09e6acb5-6fd5-40d6-802a-aa370b181103
+e5139c63-0594-48e9-8444-8f40490910f2,flightStrategies,False,8ef409ac-3fda-4c45-88c1-9367d95bd8dd
+09fb5a24-b9df-49d1-aaab-3c87aae67ebb,DeliveryDrone,True,
+1ad39b9e-26c4-4d7b-b918-b19112a04ab5,battery,False,09fb5a24-b9df-49d1-aaab-3c87aae67ebb
+7cbf37cd-be99-4923-97b9-32889e08942c,sustainableBattery,False,1ad39b9e-26c4-4d7b-b918-b19112a04ab5
+648c817a-7e6d-4a4b-b258-6cb4ded08d95,chargingStrategy,False,09fb5a24-b9df-49d1-aaab-3c87aae67ebb
+c46b92d0-e30b-4a60-9b63-cd2dfc3de970,powerCharging,False,648c817a-7e6d-4a4b-b258-6cb4ded08d95

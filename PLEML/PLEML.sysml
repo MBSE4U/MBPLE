@@ -26,30 +26,29 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
          * 
          * PLEML is an extension for SysML v2 to enable the modeling of PLE Features.
          * 
-         * Copyright 2024 Tim Weilkiens, Marco Forlingieri, Vince Molnar
+         * Copyright 2025 Tim Weilkiens, Marco Forlingieri, Vince Molnar
          * 
          */
-    private import SequenceFunctions::*;   
+    private import SequenceFunctions::*;
+
+    occurrence def FeatureModel {
+        occurrence featureTreeRoot : Feature;
+        occurrence featureConfigurations[*] : FeatureConfiguration;
+    }
+    occurrence featureModels[*] : FeatureModel;
 
     occurrence def FeatureConfiguration {
-        doc /*
-             * A Feature Configuration specifies a valid selection of features 
-             * in a feature tree for a member product of the product line.
-             */
-        bind selection.featureConstraints.featureConfiguration = self; // sets the current feature configuration
-        occurrence selection : Feature {
-            doc /* The root feature of the feature tree with selected features. */
+        occurrence featureTree : Feature {
             assert constraint :>> featureConstraints[*] {
                 doc /* Assign the feature configuration to all feature constraints 
-                     * in the tree to enable their verification 
-                     */
-            }
+                    * in the tree to enable their verification 
+                    */
+                in occurrence :>> featureConfiguration = that;
+            }            
         }
-
+        occurrence selectedFeatures[*] : Feature;        
     }
-    occurrence featureConfigurations[*] : FeatureConfiguration {
-        doc /* The pleFeatureConfigurations bundles all feature configurations of the model. */
-    }
+    occurrence featureConfigurations[*] : FeatureConfiguration;
 
     occurrence def Feature {
         doc /* 
@@ -57,102 +56,104 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
             * that distinguishes it from other products in the product line.
             */
 
-        occurrence subFeatures[*] : Feature = suboccurrences {
-            assert constraint :>> featureConstraints {
-                // handover the feature configuration to the feature constraints of the subitems
-                in featureConfiguration = featureConstraints.featureConfiguration;
-            }
-
-        }
         attribute bindingTime : LifeCycleKind default LifeCycleKind::Development {
-            doc /* The binding time of the feature. */
+            doc /* The binding time of the feature with default Development. */
         }
-        attribute isEnd : ScalarValues::Boolean = subFeatures->isEmpty() {
+        derived attribute isEnd : ScalarValues::Boolean = subFeatures->isEmpty() {
             doc /* Indicates whether the feature is a leaf of the tree (=true) or a node (=false). */
         }
-
         assert constraint featureConstraints[*] : FeatureConstraint {
-            doc /* Set of all feature constraints of the feature. */
+            doc /* Set of all feature constraints owned by the feature. */
+            in occurrence :>> owningFeature = that;
         }
-        assert constraint requiredFeatures : RequiresConstraint :> featureConstraints;
-        assert constraint xorFeatures : XORConstraint :> featureConstraints;
-        
-        assert constraint {
-            doc /* All subitems of a feature shall be typed by PLEFeature. */
-            subFeatures->ControlFunctions::forAll{ in i; i istype Feature}
+
+        assert constraint requiresFeatures[*] : RequiresConstraint :> featureConstraints { 
+            doc /* Set of REQUIRES constraints */
         }
-        
+        assert constraint xorFeatures[*] : XORConstraint :> featureConstraints {
+            doc /* Set of XOR constraints (aka conflict constraints) */
+        }
+
+        occurrence subFeatures[*] : Feature = suboccurrences {
+            assert constraint :>> featureConstraints {
+                // Handover the feature configuration to the feature constraints of the subitems
+                in occurrence :>> featureConfiguration = featureConstraints.featureConfiguration;
+            }
+        }
     }
-    occurrence features[0..*] : Feature {
-        doc /* The pleFeatures bundles all features of the model. */
-    }
+    occurrence features[0..*] : Feature; 
 
     enum def LifeCycleKind :> ScalarValues::Natural {
-        doc /* Definition of feature binding times. 
-             * The numbers provides an order of the life cycles.
-             */
+        doc /* Definition of feature binding times. The numbers provides an order of the life cycles. */
         enum Development = 1;
         enum Production = 2;
         enum Operation = 3;
     }
 
-    constraint def FeatureConstraint {
-        doc /* Common definition of a feature constraint. 
-             * 
-             * The owning feature of the feature constraint is not part of 
-             * constrainedFeatures.
-             */
-        in occurrence featureConfiguration[0..1]: FeatureConfiguration;
-        in occurrence constrainedFeatures[1..*]: Feature;
-        true
+    abstract constraint def FeatureConstraint {
+        doc /* Common abstract definition of a feature constraint. */
+        in occurrence featureConfiguration: FeatureConfiguration;
+        in occurrence owningFeature : Feature;
+        in occurrence constrainedFeatures[0..*]: Feature;
     }
 
     constraint def RequiresConstraint :> FeatureConstraint {
-        in requires :> constrainedFeatures;
-        in :>> featureConfiguration;
-        featureConfiguration.suboccurrences->includes(self) 
-            implies featureConfiguration.suboccurrences->includes(requires)       
+        doc /* Definition of a REQUIRES constraint.
+             * 
+             * Without a valid feature configuration,
+             * no statement can be made and the constraint returns true.
+             * With a valid feature configuration, it checks if the owning feature (=that)
+             * is part of the feature configuration which implies that all requires features
+             * must also be part of the feature configuration.
+             */
+        in occurrence requires :> constrainedFeatures;
+        in occurrence :>> featureConfiguration;
+        if featureConfiguration != null ?
+            featureConfiguration.selectedFeatures->includes(owningFeature) 
+                implies featureConfiguration.selectedFeatures->includes(requires)
+        else 
+            true
     }
-    constraint requiresConstraints[*] : RequiresConstraint;
 
     constraint def XORConstraint :> FeatureConstraint {
+        doc /* Definition of a XOR constraint.
+             *
+             * Without a valid feature configuration,
+             * no statement can be made and the constraint returns true.
+             * With a valid feature configuration, it checks if the owning feature (=that)
+             * is part of the feature configuration which implies that all excluded features
+             * shall not be part of the feature configuration.
+             */
         in occurrence excluded :> constrainedFeatures;
         in occurrence :>> featureConfiguration;
-        featureConfiguration.selection.suboccurrences->includes(self) 
-            implies (1..size(excluded)-1)->ControlFunctions::forAll { 
-                in f; not featureConfiguration.selection.suboccurrences->includes(f) 
-            }
+        if featureConfiguration != null ?
+           featureConfiguration.selectedFeatures->includes(owningFeature) 
+                implies (1..size(excluded)-1)->ControlFunctions::forAll { 
+                    in f; not featureConfiguration.selectedFeatures->includes(f) 
+                }
+        else
+            true
     }
-    constraint xorConstraints[*] : XORConstraint;
 
     connection def FeatureBinding {
         doc /* Binds a feature to one or more shared assets. */
-        end pleFeature : Feature;
+        end feature : Feature;
         end sharedAsset[1..*] : Base::Anything;
     }
-    abstract connection featureBindings[*] : FeatureBinding {
-        doc /* The connection usage featureBindings bundles all feaure bindings of the model. */
-    }
+    abstract connection featureBindings[*] : FeatureBinding;
 
     //
     // Semantic Metadata for user-defined keywords
     //
+    metadata def <featureModel> FeatureModelMetadata :> Metaobjects::SemanticMetadata {
+        :>> baseType = featureModels meta SysML::OccurrenceUsage;
+    }
     metadata def <feature> FeatureMetadata :> Metaobjects::SemanticMetadata {
         :>> baseType = features meta SysML::OccurrenceUsage;
     }
-
-    metadata def <featureConfiguration> FeatureConfigurationMetadata :> Metaobjects::SemanticMetadata {
+   metadata def <featureConfiguration> FeatureConfigurationMetadata :> Metaobjects::SemanticMetadata {
         :>> baseType = featureConfigurations meta SysML::OccurrenceUsage;
     }
-
-    metadata def <requiresFeatures> RequiresConstraintMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = requiresConstraints meta SysML::ConstraintUsage;
-    }
-
-    metadata def <xorFeatures> XORConstraintMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = xorConstraints meta SysML::ConstraintUsage;
-    }   
-
     metadata def <featureBinding> FeatureBindingMetadata :> Metaobjects::SemanticMetadata {
         :>> baseType = featureBindings meta SysML::ConnectionUsage;
     }   
