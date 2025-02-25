@@ -30,8 +30,8 @@ package DroneProductLineSharedAssets {
              * for the main engineering artifacts and links them together. 
              */
 
-        // The Feature Tree
-        #feature droneFeatureTree : FM::FT;
+        // The Feature Model
+        #featureModel droneFeatureModel : FM::DroneProductLineFeatureModel;
 
         // The Base Architecture
         part droneBaseArchitectureContext : DPL_BA::DroneBaseArchitectureContext;
@@ -45,24 +45,24 @@ package DroneProductLineSharedAssets {
         part droneProduct : DPL_SA::Drone;
 
         // Feature Bindings from Shared Assets to the Features 
-        #featureBinding connect droneSystemRequirements.flightTime to droneFeatureTree.battery;
-        #featureBinding connect droneSystemRequirements.flightTime::standardRange to droneFeatureTree.standardBattery;
-        #featureBinding connect droneSystemRequirements.flightTime::extendedRange to droneFeatureTree.longDistanceBattery;
+        #featureBinding connect droneSystemRequirements.flightTime to droneFeatureModel.featureTree.battery;
+        #featureBinding connect droneSystemRequirements.flightTime::standardRange to droneFeatureModel.featureTree.standardBattery;
+        #featureBinding connect droneSystemRequirements.flightTime::extendedRange to droneFeatureModel.featureTree.longDistanceBattery;
         
-        #featureBinding connect droneProduct.controlUnit.charging to droneFeatureTree.chargingStrategy;
-        #featureBinding connect droneProduct.controlUnit.charging::standardCharging to droneFeatureTree.standardCharging;
-        #featureBinding connect droneProduct.controlUnit.charging::longDistanceCharging to droneFeatureTree.powerCharging;
+        #featureBinding connect droneProduct.controlUnit.charging to droneFeatureModel.featureTree.chargingStrategy;
+        #featureBinding connect droneProduct.controlUnit.charging::standardCharging to droneFeatureModel.featureTree.standardCharging;
+        #featureBinding connect droneProduct.controlUnit.charging::longDistanceCharging to droneFeatureModel.featureTree.powerCharging;
         
-        #featureBinding connect droneProduct.controlUnit.flightController.observationControlModule to droneFeatureTree.observationPatterns;
-        #featureBinding connect droneProduct.controlUnit.flightController.cameraControlModule to droneFeatureTree.cameraPatterns;
+        #featureBinding connect droneProduct.controlUnit.flightController.observationControlModule to droneFeatureModel.featureTree.observationPatterns;
+        #featureBinding connect droneProduct.controlUnit.flightController.cameraControlModule to droneFeatureModel.featureTree.cameraPatterns;
 
-        #featureBinding connect droneProduct.battery to droneFeatureTree.battery;
-        #featureBinding connect droneProduct.battery::standardBattery to droneFeatureTree.standardBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery to droneFeatureTree.longDistanceBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureTree.powerBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::sustainableBattery to droneFeatureTree.sustainableBattery;
+        #featureBinding connect droneProduct.battery to droneFeatureModel.featureTree.battery;
+        #featureBinding connect droneProduct.battery::standardBattery to droneFeatureModel.featureTree.standardBattery;
+        #featureBinding connect droneProduct.battery::longDistanceBattery to droneFeatureModel.featureTree.longDistanceBattery;
+        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel.featureTree.powerBattery;
+        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::sustainableBattery to droneFeatureModel.featureTree.sustainableBattery;
 
-        #featureBinding connect droneProduct.body::bodyWithPayload to droneFeatureTree.payload;
+        #featureBinding connect droneProduct.body::bodyWithPayload to droneFeatureModel.featureTree.payload;
     }
 
     package <DPL_BA> DroneProductLineBaseArchitecture {       

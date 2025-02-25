@@ -32,21 +32,16 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
     private import SequenceFunctions::*;
 
     occurrence def FeatureModel {
-        occurrence featureTreeRoot : Feature;
+        occurrence featureTree[*] : Feature;
         occurrence featureConfigurations[*] : FeatureConfiguration;
     }
     occurrence featureModels[*] : FeatureModel;
 
-    occurrence def FeatureConfiguration {
-        occurrence featureTree : Feature {
-            assert constraint :>> featureConstraints[*] {
-                doc /* Assign the feature configuration to all feature constraints 
-                    * in the tree to enable their verification 
-                    */
-                in occurrence :>> featureConfiguration = that;
-            }            
-        }
-        occurrence selectedFeatures[*] : Feature;        
+    occurrence def FeatureConfiguration :> Feature {
+        assert constraint :>> featureConstraints[*] {
+            doc /* Assign the feature configuration to all feature constraints in the tree to enable their verification. */
+            in occurrence :>> featureConfiguration = that;
+        }            
     }
     occurrence featureConfigurations[*] : FeatureConfiguration;
 
@@ -55,30 +50,18 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
             * A Feature is a characteristic of a product in a product line 
             * that distinguishes it from other products in the product line.
             */
-
         attribute bindingTime : LifeCycleKind default LifeCycleKind::Development {
             doc /* The binding time of the feature with default Development. */
-        }
-        derived attribute isEnd : ScalarValues::Boolean = subFeatures->isEmpty() {
-            doc /* Indicates whether the feature is a leaf of the tree (=true) or a node (=false). */
         }
         assert constraint featureConstraints[*] : FeatureConstraint {
             doc /* Set of all feature constraints owned by the feature. */
             in occurrence :>> owningFeature = that;
         }
-
         assert constraint requiresFeatures[*] : RequiresConstraint :> featureConstraints { 
             doc /* Set of REQUIRES constraints */
         }
         assert constraint xorFeatures[*] : XORConstraint :> featureConstraints {
             doc /* Set of XOR constraints (aka conflict constraints) */
-        }
-
-        occurrence subFeatures[*] : Feature = suboccurrences {
-            assert constraint :>> featureConstraints {
-                // Handover the feature configuration to the feature constraints of the subitems
-                in occurrence :>> featureConfiguration = featureConstraints.featureConfiguration;
-            }
         }
     }
     occurrence features[0..*] : Feature; 
@@ -106,11 +89,11 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
              * is part of the feature configuration which implies that all requires features
              * must also be part of the feature configuration.
              */
-        in occurrence requires :> constrainedFeatures;
+        in occurrence requires :>> constrainedFeatures;
         in occurrence :>> featureConfiguration;
         if featureConfiguration != null ?
-            featureConfiguration.selectedFeatures->includes(owningFeature) 
-                implies featureConfiguration.selectedFeatures->includes(requires)
+            featureConfiguration.suboccurrences->includes(owningFeature) 
+                implies featureConfiguration.suboccurrences->includes(requires)
         else 
             true
     }
@@ -127,9 +110,9 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
         in occurrence excluded :> constrainedFeatures;
         in occurrence :>> featureConfiguration;
         if featureConfiguration != null ?
-           featureConfiguration.selectedFeatures->includes(owningFeature) 
+           featureConfiguration.suboccurrences->includes(owningFeature) 
                 implies (1..size(excluded)-1)->ControlFunctions::forAll { 
-                    in f; not featureConfiguration.selectedFeatures->includes(f) 
+                    in f; not featureConfiguration.suboccurrences->includes(f) 
                 }
         else
             true
