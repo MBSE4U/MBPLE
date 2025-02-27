@@ -89,11 +89,10 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
              * is part of the feature configuration which implies that all requires features
              * must also be part of the feature configuration.
              */
-        in occurrence requires :>> constrainedFeatures;
-        in occurrence :>> featureConfiguration;
+        in occurrence requiredFeatures :>> constrainedFeatures;
         if featureConfiguration != null ?
             featureConfiguration.suboccurrences->includes(owningFeature) 
-                implies featureConfiguration.suboccurrences->includes(requires)
+                implies featureConfiguration.suboccurrences->includes(requiredFeatures)
         else 
             true
     }
@@ -108,7 +107,6 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
              * shall not be part of the feature configuration.
              */
         in occurrence excluded :> constrainedFeatures;
-        in occurrence :>> featureConfiguration;
         if featureConfiguration != null ?
            featureConfiguration.suboccurrences->includes(owningFeature) 
                 implies (1..size(excluded)-1)->ControlFunctions::forAll { 

@@ -32,7 +32,7 @@ package <FM> DroneProductLineFeatureModel {
             }
             #feature powerBattery :> longDistanceBattery {
                 assert constraint :>> requiresFeatures {
-                    in #feature :>> requires = (powerCharging);
+                    in #feature :>> requiredFeatures = (powerCharging);
                 }
             }
             #feature sustainableBattery :> longDistanceBattery;
@@ -41,12 +41,12 @@ package <FM> DroneProductLineFeatureModel {
             #feature fourEngines :> numberOfEngines;
             #feature sixEngines  :> numberOfEngines {
                 assert constraint :>> requiresFeatures {
-                    in #feature :>> requires = (longDistanceBattery);
+                    in #feature :>> requiredFeatures = (longDistanceBattery);
                 }
             }
             #feature eightEngines  :> numberOfEngines {
                 assert constraint :>> requiresFeatures {
-                    in #feature :>> requires = (powerBattery);
+                    in #feature :>> requiredFeatures = (powerBattery);
                 }
             }
 
