@@ -25,35 +25,35 @@ package <FM> DroneProductLineFeatureModel {
 
     #featureModel def DroneProductLineFeatureModel {
         #feature featureTree {
-            #feature battery;
-            #feature standardBattery :> battery;
-            #feature longDistanceBattery :> battery {
+            #feature battery[1];
+            #feature standardBattery[0..1] :> battery;
+            #feature longDistanceBattery[0..1] :> battery {
                 attribute :>> bindingTime = LifeCycleKind::Operation;
             }
-            #feature powerBattery :> longDistanceBattery {
+            #feature powerBattery[0..1] :> longDistanceBattery {
                 assert constraint :>> requiresFeatures {
                     in #feature :>> requiredFeatures = (powerCharging);
                 }
             }
-            #feature sustainableBattery :> longDistanceBattery;
+            #feature sustainableBattery[0..1] :> longDistanceBattery;
 
-            #feature numberOfEngines;
-            #feature fourEngines :> numberOfEngines;
-            #feature sixEngines  :> numberOfEngines {
+            #feature numberOfEngines[1];
+            #feature fourEngines[0..1] :> numberOfEngines;
+            #feature sixEngines[0..1]  :> numberOfEngines {
                 assert constraint :>> requiresFeatures {
                     in #feature :>> requiredFeatures = (longDistanceBattery);
                 }
             }
-            #feature eightEngines  :> numberOfEngines {
+            #feature eightEngines[0..1]  :> numberOfEngines {
                 assert constraint :>> requiresFeatures {
                     in #feature :>> requiredFeatures = (powerBattery);
                 }
             }
 
-            #feature numberOfCameras;
-            #feature noCam :> numberOfCameras;
-            #feature oneCam :> numberOfCameras;
-            #feature twoCams :> numberOfCameras;
+            #feature numberOfCameras[1];
+            #feature noCam[0..1] :> numberOfCameras;
+            #feature oneCam[0..1] :> numberOfCameras;
+            #feature twoCams[0..1] :> numberOfCameras;
 
             // Optional feature
             #feature payload[0..1] {
@@ -62,15 +62,15 @@ package <FM> DroneProductLineFeatureModel {
                 }
             }
 
-            #feature chargingStrategy;
-            #feature standardCharging :> chargingStrategy;
-            #feature powerCharging :> chargingStrategy;
+            #feature chargingStrategy[1];
+            #feature standardCharging[0..1] :> chargingStrategy;
+            #feature powerCharging[0..1] :> chargingStrategy;
 
             // Alternative Feature group with zero, one, or two selectable subfeatures
             #feature flightStrategies[0..2];
-            #feature observationPatterns :> flightStrategies;
-            #feature cameraPatterns :> flightStrategies;
-            #feature aerobaticPatterns :> flightStrategies;            
+            #feature observationPatterns[0..1] :> flightStrategies;
+            #feature cameraPatterns[0..1] :> flightStrategies;
+            #feature aerobaticPatterns[0..1] :> flightStrategies;            
         }
 
         #featureConfiguration deliveryDrone :> featureTree {
