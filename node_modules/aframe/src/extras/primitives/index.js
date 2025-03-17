@@ -1,0 +1,14 @@
+import './primitives/a-camera.js';
+import './primitives/a-cursor.js';
+import './primitives/a-curvedimage.js';
+import './primitives/a-gltf-model.js';
+import './primitives/a-image.js';
+import './primitives/a-light.js';
+import './primitives/a-link.js';
+import './primitives/a-obj-model.js';
+import './primitives/a-sky.js';
+import './primitives/a-sound.js';
+import './primitives/a-text.js';
+import './primitives/a-video.js';
+import './primitives/a-videosphere.js';
+import './primitives/meshPrimitives.js';

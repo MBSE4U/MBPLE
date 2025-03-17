@@ -1,0 +1,44 @@
+{
+  "name": "aframe-extras",
+  "version": "7.5.4",
+  "description": "Add-ons and examples for A-Frame VR.",
+  "author": "Don McCurdy <dm@donmccurdy.com>",
+  "license": "MIT",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./controls/*": "./src/controls/*",
+    "./loaders/*": "./src/loaders/*",
+    "./misc/*": "./src/misc/*",
+    "./pathfinding/*": "./src/pathfinding/*",
+    "./primitives/*": "./src/primitives/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c-frame/aframe-extras.git"
+  },
+  "scripts": {
+    "dev": "webpack serve",
+    "dist": "npm run dist:min && npm run dist:max",
+    "dist:max": "webpack",
+    "dist:min": "cross-env NODE_ENV=production webpack"
+  },
+  "dependencies": {
+    "nipplejs": "^0.10.2",
+    "three": "^0.164.0",
+    "three-pathfinding": "^1.3.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  },
+  "keywords": [
+    "aframe",
+    "a-frame",
+    "vr",
+    "webgl",
+    "webvr"
+  ]
+}

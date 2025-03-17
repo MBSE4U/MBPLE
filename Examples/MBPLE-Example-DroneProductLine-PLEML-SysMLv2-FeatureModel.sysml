@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package <FM> DroneProductLineFeatureModel {
-    private import PLEML::*;
+package <FM> DroneProductLineFeatureModelProject {
+    private import 'Product Line Engineering Modeling Language'::*;
 
     #featureModel def DroneProductLineFeatureModel {
-        #feature featureTree {
+        #featureTree droneProductLineFeatureTree :> featureTrees {
             #feature battery[1];
             #feature standardBattery[0..1] :> battery;
             #feature longDistanceBattery[0..1] :> battery {
@@ -35,7 +35,7 @@ package <FM> DroneProductLineFeatureModel {
                     in #feature :>> requiredFeatures = (powerCharging);
                 }
             }
-            #feature sustainableBattery[0..1] :> longDistanceBattery;
+            #feature xPowerBattery[0..1] :> longDistanceBattery;
 
             #feature numberOfEngines[1];
             #feature fourEngines[0..1] :> numberOfEngines;
@@ -61,6 +61,8 @@ package <FM> DroneProductLineFeatureModel {
                     in #feature :>> excluded = (twoCams);
                 }
             }
+            #feature smallPayLoad[0..1] :> payload;
+            #feature largePayLoad[0..1] :> payload;
 
             #feature chargingStrategy[1];
             #feature standardCharging[0..1] :> chargingStrategy;
@@ -73,22 +75,22 @@ package <FM> DroneProductLineFeatureModel {
             #feature aerobaticPatterns[0..1] :> flightStrategies;            
         }
 
-        #featureConfiguration deliveryDrone :> featureTree {
-            #feature :>> battery = sustainableBattery;
+        #featureConfiguration deliveryDrone :> droneProductLineFeatureTree {
+            #feature :>> battery = xPowerBattery;
             #feature :>> chargingStrategy = powerCharging;
             #feature :>> numberOfEngines = sixEngines;
             #feature :>> numberOfCameras = oneCam;
             #feature :>> flightStrategies = (cameraPatterns);
             #feature :>> payload;
         }
-        #featureConfiguration observationDrone :> featureTree {
+        #featureConfiguration observationDrone :> droneProductLineFeatureTree {
             #feature :>> battery = powerBattery;
             #feature :>> chargingStrategy = powerCharging;
             #feature :>> numberOfEngines = eightEngines;
             #feature :>> numberOfCameras = twoCams;
             #feature :>> flightStrategies = (observationPatterns, cameraPatterns);
         }
-        #featureConfiguration consumerDrone :> featureTree {
+        #featureConfiguration consumerDrone :> droneProductLineFeatureTree {
             #feature :>> battery = standardBattery;
             #feature :>> chargingStrategy = standardCharging;
             #feature :>> numberOfEngines = fourEngines;

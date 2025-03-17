@@ -46,7 +46,7 @@ package <PRODUCT_DD> DeliveryDroneProductModel {
                 part :>> cameraControlModule[1];
                 part :>> observationControlModule[1];
             }
-            part :>> battery = battery::longDistanceBattery::longRangeBattery::sustainableBattery;
+            part :>> battery = battery::longDistanceBattery::longRangeBattery::xPowerBattery;
         }
     }
 }
