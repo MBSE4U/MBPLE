@@ -23,7 +23,7 @@
 package DroneProductLineSharedAssets {
 
     private import PLEML::*;
-    private import DroneProductLineFeatureModel::*;
+    private import DroneProductLineFeatureModelProject::*;
 
     occurrence def DroneProductLineProject {
         doc /* The DroneProductLineProject provides the usage context 
