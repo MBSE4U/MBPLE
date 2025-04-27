@@ -45,45 +45,82 @@ package DroneProductLineSharedAssets {
         part droneProduct : DPL_SA::Drone;
 
         // Feature Bindings from Shared Assets to the Features 
-        #featureBinding connect droneSystemRequirements.flightTime to droneFeatureModel.droneProductLineFeatureTree.battery;
-        #featureBinding connect droneSystemRequirements.flightTime::standardRange to droneFeatureModel.droneProductLineFeatureTree.standardBattery;
-        #featureBinding connect droneSystemRequirements.flightTime::extendedRange to droneFeatureModel.droneProductLineFeatureTree.longDistanceBattery;
-        
-        #featureBinding connect droneProduct.controlUnit.charging to droneFeatureModel.droneProductLineFeatureTree.chargingStrategy;
-        #featureBinding connect droneProduct.controlUnit.charging::standardCharging to droneFeatureModel.droneProductLineFeatureTree.standardCharging;
-        #featureBinding connect droneProduct.controlUnit.charging::longDistanceCharging to droneFeatureModel.droneProductLineFeatureTree.powerCharging;
-        
-        #featureBinding connect droneProduct.controlUnit.flightController.observationControlModule to droneFeatureModel.droneProductLineFeatureTree.observationPatterns;
-        #featureBinding connect droneProduct.controlUnit.flightController.cameraControlModule to droneFeatureModel.droneProductLineFeatureTree.cameraPatterns;
+        #featureBinding connect droneSystemRequirements.minimumFlightTime to droneFeatureModel.droneProductLineFeatureTree.missionTime;
+        #featureBinding connect droneSystemRequirements.minimumFlightTime::standardRange to droneFeatureModel.droneProductLineFeatureTree.standardMission;
+        #featureBinding connect droneSystemRequirements.minimumFlightTime::extendedRange to droneFeatureModel.droneProductLineFeatureTree.longMission;       
 
-        #featureBinding connect droneProduct.battery to droneFeatureModel.droneProductLineFeatureTree.battery;
-        #featureBinding connect droneProduct.battery::standardBattery to droneFeatureModel.droneProductLineFeatureTree.standardBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery to droneFeatureModel.droneProductLineFeatureTree.longDistanceBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel.droneProductLineFeatureTree.powerBattery;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::xPowerBattery to droneFeatureModel.droneProductLineFeatureTree.xPowerBattery;
+        #featureBinding connect droneProduct.battery to droneFeatureModel.droneProductLineFeatureTree.missionTime;
+        #featureBinding connect droneProduct.battery::standardBattery to droneFeatureModel.droneProductLineFeatureTree.standardMission;
+        #featureBinding connect droneProduct.battery::longDistanceBattery to droneFeatureModel.droneProductLineFeatureTree.longMission;
+        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel.droneProductLineFeatureTree.deliveryMission;
+        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::xPowerBattery to droneFeatureModel.droneProductLineFeatureTree.forestFireMission;
 
-        #featureBinding connect droneProduct.body::bodyWithPayload to droneFeatureModel.droneProductLineFeatureTree.payload;
+        #featureBinding connect droneProduct.body::bodyWithoutPayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;
+        #featureBinding connect droneProduct.body::bodyWithSmallPayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;
+        #featureBinding connect droneProduct.body::bodyWithLargePayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;        
     }
 
     package <DPL_BA> DroneProductLineBaseArchitecture {       
         part def DroneBaseArchitectureContext {
-            part systemOfInterest : DroneBaseArchitecture;
+            part systemOfInterest : CommonDrone;
         }
-        part def DroneBaseArchitecture {
+        part def CommonDrone {
+            attribute remainingFlightTime :> ISQ::duration;
             attribute totalMass :> ISQ::mass;
+            part battery {
+                attribute capacity : BatteryCapacity;
+            }
+        }
+        enum def BatteryCapacity {
+            enum full;
+            enum medium;
+            enum low;
+            enum empty;
+        }
+    }
+
+    package <DPL_C> DroneProductLineSystemContext {
+        part def Environment {
+            attribute windspeed :> ISQ::speed;
         }
     }
 
     package <DPL_RE> DroneProductLineSystemRequirements {
         requirement def DroneSystemRequirementsSpecification {
-            subject drone : DPL_BA::DroneBaseArchitecture;
+            subject drone : DPL_BA::CommonDrone;
 
-            requirement <REQ1> maximumTakeOffWeight;
-            variation requirement <REQ2> flightTime {
-                variant requirement standardRange;
-                variant requirement extendedRange;
+            requirement <REQ2> maximumTakeoffWeight {
+                doc /* */
+                subject drone : DPL_BA::CommonDrone;
+
+                assert constraint {
+                    drone.totalMass <= 42 [SI::kg]
+                }
             }
-            requirement <REQ3> maximumPayloadWeight;
+
+            variation requirement <REQ3> minimumFlightTime : MinimumFlightTimeDef {
+                variant requirement standardRange {
+                    assert constraint {
+                        drone.remainingFlightTime >= 60 [SI::min]
+                    }
+                }
+                variant requirement extendedRange {
+                    assert constraint {
+                        drone.remainingFlightTime >= 120 [SI::min]
+                    }
+                }
+            }
+
+            requirement def MinimumFlightTimeDef {
+                subject drone : DPL_BA::CommonDrone;
+                actor environment : DPL_C::Environment;
+
+                assume constraint {
+                    environment.windspeed <= 15 [SI::'km/h']
+                    and drone.battery.capacity == DPL_BA::BatteryCapacity::full
+                }
+            }
+
         }
     }
 
@@ -91,8 +128,11 @@ package DroneProductLineSharedAssets {
         part def Drone {
             variation part body {
                 variant part bodyWithoutPayload;
-                variant part bodyWithPayload {
+                variant part bodyWithSmallPayload {
                     part payloadAttachment;
+                }
+                variant part bodyWithLargePayload {
+                    part xPayloadAttachment;
                 }
             }
 
@@ -106,10 +146,9 @@ package DroneProductLineSharedAssets {
                     part cameraControlModule[0..1];
                 }
             }
-            variation part engines [4..8] {
+            variation part engines [4..6] {
                 variant part engines4[4];
                 variant part engines6[6];
-                variant part engines8[8];
             }
             variation part battery {
                 variant part standardBattery;
@@ -118,7 +157,6 @@ package DroneProductLineSharedAssets {
                         variant part powerBattery;
                         variant part xPowerBattery;
                     }
-                    // satisfy DPL_RE::droneSystemRequirementsSpecification.flightTime by self;
                 }
             }
             assert constraint {

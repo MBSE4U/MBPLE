@@ -111,17 +111,16 @@ library package <PLEML> 'Product Line Engineering Modeling Language' {
 
     constraint def XORConstraint :> FeatureConstraint {
         doc /* Definition of a XOR constraint.
-             *
-             * Without a valid feature configuration,
-             * no statement can be made and the constraint returns true.
-             * With a valid feature configuration, it checks if the owning feature (=that)
-             * is part of the feature configuration which implies that all excluded features
-             * shall not be part of the feature configuration.
-             */
+                *
+                * Without a valid feature configuration, no statement can be made, 
+                * and the constraint returns true. With a valid feature configuration, 
+                * it checks if the owning feature (=that) is part of the feature configuration, 
+                * which implies that all excluded features shall not be part of the feature configuration.
+                */
         in occurrence excluded :> constrainedFeatures;
         in occurrence featureConfiguration :>> featureConfiguration;
         if featureConfiguration != null ?
-           featureConfiguration.suboccurrences->includes(owningFeature) 
+            featureConfiguration.suboccurrences->includes(owningFeature) 
                 implies (1..size(excluded)-1)->ControlFunctions::forAll { 
                     in f; not featureConfiguration.suboccurrences->includes(f) 
                 }

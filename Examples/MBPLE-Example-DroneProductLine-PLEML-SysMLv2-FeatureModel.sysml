@@ -25,77 +25,48 @@ package <FM> DroneProductLineFeatureModelProject {
 
     #featureModel def DroneProductLineFeatureModel {
         #featureTree droneProductLineFeatureTree :> featureTrees {
-            #feature battery[1];
-            #feature standardBattery[0..1] :> battery;
-            #feature longDistanceBattery[0..1] :> battery {
-                attribute :>> bindingTime = LifeCycleKind::Operation;
-            }
-            #feature powerBattery[0..1] :> longDistanceBattery {
-                assert constraint :>> requiresFeatures {
-                    in #feature :>> requiredFeatures = (powerCharging);
+            #feature missionKind[1..2];
+            #feature deliveryMission :> missionKind;
+            #feature observationMission :> missionKind {
+                assert constraint :>> xorFeatures {
+                    in #feature :>> excluded = (hasPayload);
                 }
             }
-            #feature xPowerBattery[0..1] :> longDistanceBattery;
+            #feature securityMission :> observationMission;
+            #feature forestFireMission :> observationMission {
+                assert constraint :>> requiresFeatures {
+                    in #feature :>> requiredFeatures = (longMission);
+                }
+            }
+            #feature funMission :> missionKind;
 
-            #feature numberOfEngines[1];
-            #feature fourEngines[0..1] :> numberOfEngines;
-            #feature sixEngines[0..1]  :> numberOfEngines {
-                assert constraint :>> requiresFeatures {
-                    in #feature :>> requiredFeatures = (longDistanceBattery);
-                }
-            }
-            #feature eightEngines[0..1]  :> numberOfEngines {
-                assert constraint :>> requiresFeatures {
-                    in #feature :>> requiredFeatures = (powerBattery);
-                }
-            }
-
-            #feature numberOfCameras[1];
-            #feature noCam[0..1] :> numberOfCameras;
-            #feature oneCam[0..1] :> numberOfCameras;
-            #feature twoCams[0..1] :> numberOfCameras;
+            #feature missionTime default standardMission;
+            #feature standardMission :> missionTime;
+            #feature longMission :> missionKind;
 
             // Optional feature
-            #feature payload[0..1] {
-                assert constraint :>> xorFeatures {
-                    in #feature :>> excluded = (twoCams);
+            #feature hasPayload[0..1] {
+                assert constraint :>> requiresFeatures {
+                    in #feature :>> requiredFeatures = (payloadSize);
                 }
             }
-            #feature smallPayLoad[0..1] :> payload;
-            #feature largePayLoad[0..1] :> payload;
-
-            #feature chargingStrategy[1];
-            #feature standardCharging[0..1] :> chargingStrategy;
-            #feature powerCharging[0..1] :> chargingStrategy;
-
-            // Alternative Feature group with zero, one, or two selectable subfeatures
-            #feature flightStrategies[0..2];
-            #feature observationPatterns[0..1] :> flightStrategies;
-            #feature cameraPatterns[0..1] :> flightStrategies;
-            #feature aerobaticPatterns[0..1] :> flightStrategies;            
+            #feature payloadSize[0..1];
+            #feature smallPayload :> payloadSize;
+            #feature largePayload :> payloadSize;
         }
 
         #featureConfiguration deliveryDrone :> droneProductLineFeatureTree {
-            #feature :>> battery = xPowerBattery;
-            #feature :>> chargingStrategy = powerCharging;
-            #feature :>> numberOfEngines = sixEngines;
-            #feature :>> numberOfCameras = oneCam;
-            #feature :>> flightStrategies = (cameraPatterns);
-            #feature :>> payload;
+            #feature :>> missionKind = (deliveryMission);
+            #feature :>> missionTime = (longMission);
+            #feature :>> hasPayload;
+            #feature :>> payloadSize = largePayload;
         }
         #featureConfiguration observationDrone :> droneProductLineFeatureTree {
-            #feature :>> battery = powerBattery;
-            #feature :>> chargingStrategy = powerCharging;
-            #feature :>> numberOfEngines = eightEngines;
-            #feature :>> numberOfCameras = twoCams;
-            #feature :>> flightStrategies = (observationPatterns, cameraPatterns);
+            #feature :>> missionKind = (forestFireMission);
+            #feature :>> missionTime = (longMission);
         }
         #featureConfiguration consumerDrone :> droneProductLineFeatureTree {
-            #feature :>> battery = standardBattery;
-            #feature :>> chargingStrategy = standardCharging;
-            #feature :>> numberOfEngines = fourEngines;
-            #feature :>> numberOfCameras = oneCam;
-            #feature :>> flightStrategies = (cameraPatterns);
+            #feature :>> missionKind = (securityMission, funMission);
         }
     }
 }
