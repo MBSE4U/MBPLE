@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2025 Tim Weilkiens, Marco Forlingieri, Vince Molnar
+// Copyright (c) 2026 Tim Weilkiens, Marco Forlingieri, Vince Molnar
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 package <FM> DroneProductLineFeatureModelProject {
-    private import 'Product Line Engineering Modeling Language'::*;
+    private import ProductLineEngineeringModelingLanguage::*;
 
     #featureModel def DroneProductLineFeatureModel {
         #featureTree droneProductLineFeatureTree :> featureTrees {

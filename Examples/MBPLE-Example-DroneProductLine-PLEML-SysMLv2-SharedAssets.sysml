@@ -22,7 +22,7 @@
 
 package DroneProductLineSharedAssets {
 
-    private import PLEML::*;
+    private import ProductLineEngineeringModelingLanguage::*;
     private import DroneProductLineFeatureModelProject::*;
 
     occurrence def DroneProductLineProject {
@@ -31,7 +31,7 @@ package DroneProductLineSharedAssets {
              */
 
         // The Feature Model
-        #featureModel droneFeatureModel : FM::DroneProductLineFeatureModel;
+        #featureModel droneFeatureModel : DroneProductLineFeatureModel;
 
         // The Base Architecture
         part droneBaseArchitectureContext : DPL_BA::DroneBaseArchitectureContext;
@@ -45,19 +45,19 @@ package DroneProductLineSharedAssets {
         part droneProduct : DPL_SA::Drone;
 
         // Feature Bindings from Shared Assets to the Features 
-        #featureBinding connect droneSystemRequirements.minimumFlightTime to droneFeatureModel.droneProductLineFeatureTree.missionTime;
-        #featureBinding connect droneSystemRequirements.minimumFlightTime::standardRange to droneFeatureModel.droneProductLineFeatureTree.standardMission;
-        #featureBinding connect droneSystemRequirements.minimumFlightTime::extendedRange to droneFeatureModel.droneProductLineFeatureTree.longMission;       
-
-        #featureBinding connect droneProduct.battery to droneFeatureModel.droneProductLineFeatureTree.missionTime;
-        #featureBinding connect droneProduct.battery::standardBattery to droneFeatureModel.droneProductLineFeatureTree.standardMission;
-        #featureBinding connect droneProduct.battery::longDistanceBattery to droneFeatureModel.droneProductLineFeatureTree.longMission;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel.droneProductLineFeatureTree.deliveryMission;
-        #featureBinding connect droneProduct.battery::longDistanceBattery::longRangeBattery::xPowerBattery to droneFeatureModel.droneProductLineFeatureTree.forestFireMission;
-
-        #featureBinding connect droneProduct.body::bodyWithoutPayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;
-        #featureBinding connect droneProduct.body::bodyWithSmallPayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;
-        #featureBinding connect droneProduct.body::bodyWithLargePayload to droneFeatureModel.droneProductLineFeatureTree.hasPayload;        
+        #featureBindings droneProductLineFeatureBindings {
+            dependency from droneSystemRequirements::minimumFlightTime::standardRange to droneFeatureModel::droneProductLineFeatureTree::standardMission {@FB;}
+            dependency from droneSystemRequirements::minimumFlightTime::extendedRange to droneFeatureModel::droneProductLineFeatureTree::longMission {@FB;}
+    
+            dependency from droneProduct::battery::standardBattery to droneFeatureModel::droneProductLineFeatureTree::standardMission {@FB;}
+            dependency from droneProduct::battery::longDistanceBattery to droneFeatureModel::droneProductLineFeatureTree::longMission {@FB;}
+            dependency from droneProduct::battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel::droneProductLineFeatureTree::deliveryMission {@FB;}
+            dependency from droneProduct::battery::longDistanceBattery::longRangeBattery::xPowerBattery to droneFeatureModel::droneProductLineFeatureTree::forestFireMission {@FB;}
+    
+            dependency from droneProduct::body::bodyWithoutPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
+            dependency from droneProduct::body::bodyWithSmallPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
+            dependency from droneProduct::body::bodyWithLargePayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}  
+        }
     }
 
     package <DPL_BA> DroneProductLineBaseArchitecture {       
@@ -135,7 +135,6 @@ package DroneProductLineSharedAssets {
                     part xPayloadAttachment;
                 }
             }
-
             part controlUnit {
                 variation action charging {
                     variant action standardCharging;
@@ -152,18 +151,13 @@ package DroneProductLineSharedAssets {
             }
             variation part battery {
                 variant part standardBattery;
-                variant part longDistanceBattery :> longDistanceBattery.longRangeBattery {
-                    variation part longRangeBattery {
-                        variant part powerBattery;
-                        variant part xPowerBattery;
-                    }
-                }
+                variant part longDistanceBattery;
             }
             assert constraint {
-                battery == battery.longDistanceBattery implies controlUnit.charging == controlUnit.charging.longDistanceCharging
+                battery == battery::longDistanceBattery implies controlUnit.charging == controlUnit.charging::longDistanceCharging
             }
             assert constraint {
-                engines != engines.engines4 implies battery.longDistanceBattery
+                engines != engines::engines4 implies battery::longDistanceBattery
             }
 
         }

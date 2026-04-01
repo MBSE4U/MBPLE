@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2025 Tim Weilkiens, Marco Forlingieri, Vince Molnar
+// Copyright (c) 2026 Tim Weilkiens, Marco Forlingieri, Vince Molnar
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,9 @@ package <PRODUCT_DD> DeliveryDroneProductModel {
     }
     package <DD_SA> DeliveryDroneSystemArchitecture {
         part def DeliveryDrone :> DPL_SA::Drone {
+            part :>> body = body::bodyWithLargePayload;
+            part :>> controlUnit.charging = controlUnit.charging::longDistanceCharging;
+            part :>> engines = engines::engines6;
             part :>> battery = battery::longDistanceBattery;
         }
     }
