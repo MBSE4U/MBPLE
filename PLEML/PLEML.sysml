@@ -50,7 +50,7 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
         occurrence featureTrees : FeatureTree [*];
         occurrence featureConfigurations : FeatureConfiguration [*];
     }
-    occurrence featureModels : FeatureModel [*];
+    abstract occurrence featureModels : FeatureModel [*];
 
     occurrence def FeatureConfiguration :> Feature {
         assert constraint :>> featureConstraints [*] {
@@ -59,13 +59,13 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
             in occurrence :>> featureConfiguration = that;
         }
     }
-    occurrence featureConfigurations : FeatureConfiguration [*];
+    abstract occurrence featureConfigurations : FeatureConfiguration [*];
 
     occurrence def FeatureTree :> Feature {
         doc
         /* A Feature Tree is a tree structure that represents the features of a product line. */
     }
-    occurrence featureTrees : FeatureTree [*];
+    abstract occurrence featureTrees : FeatureTree [*];
 
     occurrence def Feature {
         doc
@@ -83,25 +83,25 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
         assert constraint featureConstraints : FeatureConstraint [*] {
             doc
             /* Set of all feature constraints owned by the feature. */
-            in occurrence featureConfiguration :>> featureConfiguration;
-            in occurrence owningFeature :>> owningFeature = that;
+            in occurrence featureConfiguration;
+            in occurrence :>> owningFeature = that;
         }
         assert constraint requiresFeatures : RequiresConstraint [*] :> featureConstraints {
             doc
             /* Set of REQUIRES constraints */
-            in occurrence featureConfiguration :>> featureConfiguration;
-            in occurrence owningFeature :>> owningFeature;
+            in occurrence featureConfiguration;
+            in occurrence owningFeature;
             in occurrence requiredFeatures :>> constrainedFeatures, requiredFeatures;
         }
         assert constraint xorFeatures : XORConstraint [*] :> featureConstraints {
             doc
             /* Set of XOR constraints (aka conflict constraints) */
-            in occurrence featureConfiguration :>> featureConfiguration;
-            in occurrence owningFeature :>> owningFeature;
+            in occurrence featureConfiguration;
+            in occurrence owningFeature;
             in occurrence excluded :>> constrainedFeatures, excluded;
         }
     }
-    occurrence features : Feature [0..*];
+    abstract occurrence features : Feature [0..*];
 
     enum def LifeCycleKind :> ScalarValues::Natural {
         doc
@@ -161,31 +161,40 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
             else true
     }
 
-    metadata def <FB> FeatureBinding;
-    occurrence listOfFeatureBindings [*] {
+    abstract occurrence listOfFeatureBindings [*] {
         private assert constraint {
             doc
             /* TODO: owns only dependency relationships with metadata annotation @FB and comments */
         }
-    }
-    metadata def <featureBindings> FeatureBindingsMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = listOfFeatureBindings meta SysML::OccurrenceUsage;
     }
 
     //
     // Semantic Metadata for user-defined keywords
     //
     metadata def <featureModel> FeatureModelMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = featureModels meta SysML::OccurrenceUsage;
+        :>> baseType = featureModels meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
     }
     metadata def <featureTree> FeatureTreeMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = featureTrees meta SysML::OccurrenceUsage;
+        :>> baseType = featureTrees meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
     }
     metadata def <feature> FeatureMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = features meta SysML::OccurrenceUsage;
+        :>> baseType = features meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
     }
     metadata def <featureConfiguration> FeatureConfigurationMetadata
         :> Metaobjects::SemanticMetadata {
-        :>> baseType = featureConfigurations meta SysML::OccurrenceUsage;
+        :>> baseType = featureConfigurations meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceDefinition;
+        :> annotatedElement : SysML::OccurrenceUsage;
+    }
+    metadata def <FB> FeatureBinding;
+    metadata def <featureBindings> FeatureBindingsMetadata :> Metaobjects::SemanticMetadata {
+        :>> baseType = listOfFeatureBindings meta SysML::Type;
+        :> annotatedElement : SysML::OccurrenceUsage;
     }
 }
