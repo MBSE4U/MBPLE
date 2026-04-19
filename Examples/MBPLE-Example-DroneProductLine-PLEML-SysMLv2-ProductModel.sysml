@@ -41,7 +41,7 @@ package <PRODUCT_DD> DeliveryDroneProductModel {
     package <DD_SA> DeliveryDroneSystemArchitecture {
         part def DeliveryDrone :> DPL_SA::Drone {
             part :>> body = body::bodyWithLargePayload;
-            part :>> controlUnit.charging = controlUnit.charging::longDistanceCharging;
+            action :>> controlUnit.charging = controlUnit.charging::longDistanceCharging;
             part :>> engines = engines::engines6;
             part :>> battery = battery::longDistanceBattery;
         }

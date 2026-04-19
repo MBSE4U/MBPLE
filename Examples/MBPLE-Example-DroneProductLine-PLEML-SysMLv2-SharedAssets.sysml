@@ -51,8 +51,6 @@ package DroneProductLineSharedAssets {
     
             dependency from droneProduct::battery::standardBattery to droneFeatureModel::droneProductLineFeatureTree::standardMission {@FB;}
             dependency from droneProduct::battery::longDistanceBattery to droneFeatureModel::droneProductLineFeatureTree::longMission {@FB;}
-            dependency from droneProduct::battery::longDistanceBattery::longRangeBattery::powerBattery to droneFeatureModel::droneProductLineFeatureTree::deliveryMission {@FB;}
-            dependency from droneProduct::battery::longDistanceBattery::longRangeBattery::xPowerBattery to droneFeatureModel::droneProductLineFeatureTree::forestFireMission {@FB;}
     
             dependency from droneProduct::body::bodyWithoutPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
             dependency from droneProduct::body::bodyWithSmallPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
