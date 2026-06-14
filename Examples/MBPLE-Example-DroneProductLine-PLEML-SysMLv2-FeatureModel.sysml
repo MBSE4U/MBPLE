@@ -21,52 +21,64 @@
 // SOFTWARE.
 
 package <FM> DroneProductLineFeatureModelProject {
-    private import ProductLineEngineeringModelingLanguage::*;
+    private import PLEML::*;
 
-    #featureModel def DroneProductLineFeatureModel {
-        #featureTree droneProductLineFeatureTree :> featureTrees {
-            #feature missionKind[1..2];
-            #feature deliveryMission :> missionKind;
-            #feature observationMission :> missionKind {
+    #featureModel occurrence def DroneProductLineFeatureModel {
+        doc /* Feature Model for a Drone Product Line - Example Model for PLEML. */
+        #featureTree occurrence droneProductLineFeatureTree :> featureTrees {
+            #feature occurrence missionKind[1..2];
+            #feature occurrence deliveryMission[0..1] :> missionKind default null;
+            #feature occurrence observationMission[0..1] :> missionKind default null {
                 assert constraint :>> xorFeatures {
-                    in #feature :>> excluded = (hasPayload);
+                    in #feature occurrence :>> excluded = (hasPayload);
                 }
             }
-            #feature securityMission :> observationMission;
-            #feature forestFireMission :> observationMission {
+            #feature occurrence securityMission[0..1] :> observationMission default null;
+            #feature occurrence forestFireMission[0..1] :> observationMission default null {
                 assert constraint :>> requiresFeatures {
-                    in #feature :>> requiredFeatures = (longMission);
+                    in #feature occurrence :>> requiredFeatures = (longMission);
                 }
             }
-            #feature funMission :> missionKind;
+            #feature occurrence funMission[0..1] :> missionKind default null;
 
-            #feature missionTime default standardMission;
-            #feature standardMission :> missionTime;
-            #feature longMission :> missionKind;
+            #feature occurrence missionTime default standardMission;
+            #feature occurrence standardMission[0..1] :> missionTime default featureSet;
+            #feature occurrence longMission[0..1] :> missionTime default null;
 
             // Optional feature
-            #feature hasPayload[0..1] {
+            #feature occurrence hasPayload[0..1] default null {
                 assert constraint :>> requiresFeatures {
-                    in #feature :>> requiredFeatures = (payloadSize);
+                    in #feature occurrence :>> requiredFeatures = (payloadSize);
                 }
             }
-            #feature payloadSize[0..1];
-            #feature smallPayload :> payloadSize;
-            #feature largePayload :> payloadSize;
+            #feature occurrence payloadSize[0..1] default null;
+            #feature occurrence smallPayload[0..1] :> payloadSize default null;
+            #feature occurrence largePayload[0..1] :> payloadSize default null;
+
+            #feature occurrence badWeatherConditions[0..1] default null;
         }
 
-        #featureConfiguration deliveryDrone :> droneProductLineFeatureTree {
-            #feature :>> missionKind = (deliveryMission);
-            #feature :>> missionTime = (longMission);
-            #feature :>> hasPayload;
-            #feature :>> payloadSize = largePayload;
+        #featureConfiguration occurrence deliveryDrone :> droneProductLineFeatureTree, featureConfigurations {
+            #feature occurrence :>> missionKind[1] = (deliveryMission);
+            #feature occurrence :>> deliveryMission[1];
+            #feature occurrence :>> missionTime[1] = (longMission);
+            #feature occurrence :>> longMission[1];
+            #feature occurrence :>> hasPayload[1];
+            #feature occurrence :>> payloadSize[1] = largePayload;
+            #feature occurrence :>> largePayload[1];
+            #feature occurrence :>> badWeatherConditions[1];
         }
-        #featureConfiguration observationDrone :> droneProductLineFeatureTree {
-            #feature :>> missionKind = (forestFireMission);
-            #feature :>> missionTime = (longMission);
+        #featureConfiguration occurrence observationDrone :> droneProductLineFeatureTree, featureConfigurations {
+            #feature occurrence :>> missionKind = (forestFireMission);
+            #feature occurrence :>> forestFireMission[1];
+            #feature occurrence :>> missionTime[1] = (longMission);
+            #feature occurrence :>> longMission[1];
+            #feature occurrence :>> badWeatherConditions[1];
         }
-        #featureConfiguration consumerDrone :> droneProductLineFeatureTree {
-            #feature :>> missionKind = (securityMission, funMission);
+        #featureConfiguration occurrence consumerDrone :> droneProductLineFeatureTree, featureConfigurations {
+            #feature occurrence :>> missionKind = (securityMission, funMission);
+            #feature occurrence :>> securityMission[1];
+            #feature occurrence :>> funMission[1];
         }
     }
 }

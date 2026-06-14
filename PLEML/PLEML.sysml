@@ -3,8 +3,8 @@
 //
 // The library provides an extension for SysML v2 to model PLE features.
 //
-// Version: v0.7
-// License: Apache-2.0
+// Version: v0.8
+// License: MIT
 // Maintainer: Tim Weilkiens, Contact: tim@mbse4u.com, Marco Forlingieri, Vince Molnar
 // Topic: MBSE, MBPLE, PLE, Methodology
 //
@@ -30,7 +30,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-library package <PLEML> ProductLineEngineeringModelingLanguage {
+library package PLEML {
     doc
     /* Definition of the Product Line Engineering Modeling Language (PLEML)
      *
@@ -47,7 +47,7 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
     private import SequenceFunctions::*;
 
     occurrence def FeatureModel {
-        occurrence featureTrees : FeatureTree [*];
+        occurrence featureTrees[*] : FeatureTree;
         occurrence featureConfigurations : FeatureConfiguration [*];
     }
     abstract occurrence featureModels : FeatureModel [*];
@@ -57,6 +57,16 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
             doc
             /* Assign the feature configuration to all feature constraints in the tree to enable their verification. */
             in occurrence :>> featureConfiguration = that;
+        }
+        assert constraint featureConfigurationOnlyOwnsFeatures {
+            suboccurrences->ControlFunctions::forAll({in o; o istype Feature})
+        }
+        assert constraint nodeFeaturesAreSet {
+            suboccurrences->ControlFunctions::forAll({
+                in o;
+                ((o meta SysML::OccurrenceUsage).owningUsage->SequenceFunctions::size() > 0 implies o != null)
+                and ((o as Feature).bindingTime <= (this as FeatureConfiguration).bindingTime)
+            })
         }
     }
     abstract occurrence featureConfigurations : FeatureConfiguration [*];
@@ -73,8 +83,12 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
          * that distinguishes it from other products in the product line.
          */
 
-        attribute externalRepresenation : ScalarValues::String;
-        attribute isAuthoritative : ScalarValues::Boolean default true;
+        attribute externalRepresentation : ScalarValues::String default "" {
+            doc /* Points to the origin of the feature, if this feature is only a proxy. */
+        }
+        derived attribute isAuthoritative : ScalarValues::Boolean = (externalRepresentation == "") {
+            doc /* Derived attribute indicating if feature is authoritative or a proxy. */
+        }
 
         attribute bindingTime : LifeCycleKind default LifeCycleKind::Development {
             doc
@@ -102,6 +116,7 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
         }
     }
     abstract occurrence features : Feature [0..*];
+    occurrence featureSet : Feature;
 
     enum def LifeCycleKind :> ScalarValues::Natural {
         doc
@@ -161,13 +176,6 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
             else true
     }
 
-    abstract occurrence listOfFeatureBindings [*] {
-        private assert constraint {
-            doc
-            /* TODO: owns only dependency relationships with metadata annotation @FB and comments */
-        }
-    }
-
     //
     // Semantic Metadata for user-defined keywords
     //
@@ -192,9 +200,19 @@ library package <PLEML> ProductLineEngineeringModelingLanguage {
         :> annotatedElement : SysML::OccurrenceDefinition;
         :> annotatedElement : SysML::OccurrenceUsage;
     }
-    metadata def <FB> FeatureBinding;
-    metadata def <featureBindings> FeatureBindingsMetadata :> Metaobjects::SemanticMetadata {
-        :>> baseType = listOfFeatureBindings meta SysML::Type;
-        :> annotatedElement : SysML::OccurrenceUsage;
+    metadata def <FB> FeatureBinding {
+        attribute featureName : ScalarValues::String default := DeriveFeatureName(annotatedElement);
+        attribute featureModel : ScalarValues::String;
     }
-}
+    metadata def <FCFGB> FeatureConfigurationBinding :> FeatureBinding {
+        attribute featureConfiguration :>> featureName;
+    }
+    calc def DeriveFeatureName {
+        in ref annotatedElements [*];
+        ref firstAnnotatedElement = annotatedElements#(1);
+        ref firstDependencySupplier = (firstAnnotatedElement meta SysML::Dependency).supplier#(1);
+        occurrence feature = firstDependencySupplier meta SysML::OccurrenceUsage;
+        return : ScalarValues::String;
+        feature.name ?? ""
+    }
+} // library package <PLEML> ProductLineEngineeringModelingLanguage

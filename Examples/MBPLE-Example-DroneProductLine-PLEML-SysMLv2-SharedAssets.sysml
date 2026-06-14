@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2025 Tim Weilkiens, Marco Forlingieri, Vince Molnar
+// Copyright (c) 2026 Tim Weilkiens, Marco Forlingieri, Vince Molnar
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 package DroneProductLineSharedAssets {
 
-    private import ProductLineEngineeringModelingLanguage::*;
+    private import PLEML::*;
     private import DroneProductLineFeatureModelProject::*;
 
     occurrence def DroneProductLineProject {
@@ -31,7 +31,7 @@ package DroneProductLineSharedAssets {
              */
 
         // The Feature Model
-        #featureModel droneFeatureModel : DroneProductLineFeatureModel;
+        #featureModel occurrence droneFeatureModel : DroneProductLineFeatureModel;
 
         // The Base Architecture
         part droneBaseArchitectureContext : DPL_BA::DroneBaseArchitectureContext;
@@ -45,17 +45,15 @@ package DroneProductLineSharedAssets {
         part droneProduct : DPL_SA::Drone;
 
         // Feature Bindings from Shared Assets to the Features 
-        #featureBindings droneProductLineFeatureBindings {
-            dependency from droneSystemRequirements::minimumFlightTime::standardRange to droneFeatureModel::droneProductLineFeatureTree::standardMission {@FB;}
-            dependency from droneSystemRequirements::minimumFlightTime::extendedRange to droneFeatureModel::droneProductLineFeatureTree::longMission {@FB;}
-    
-            dependency from droneProduct::battery::standardBattery to droneFeatureModel::droneProductLineFeatureTree::standardMission {@FB;}
-            dependency from droneProduct::battery::longDistanceBattery to droneFeatureModel::droneProductLineFeatureTree::longMission {@FB;}
-    
-            dependency from droneProduct::body::bodyWithoutPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
-            dependency from droneProduct::body::bodyWithSmallPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}
-            dependency from droneProduct::body::bodyWithLargePayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload {@FB;}  
-        }
+        #FeatureBinding dependency from droneSystemRequirements::minimumFlightTime::standardRange to droneFeatureModel::droneProductLineFeatureTree::standardMission;
+        #FeatureBinding dependency from droneSystemRequirements::minimumFlightTime::extendedRange to droneFeatureModel::droneProductLineFeatureTree::longMission;
+
+        #FeatureBinding dependency from droneProduct::battery::standardBattery to droneFeatureModel::droneProductLineFeatureTree::standardMission;
+        #FeatureBinding dependency from droneProduct::battery::longDistanceBattery to droneFeatureModel::droneProductLineFeatureTree::longMission;
+
+        #FeatureBinding dependency from droneProduct::body::bodyWithoutPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload;
+        #FeatureBinding dependency from droneProduct::body::bodyWithSmallPayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload;
+        #FeatureBinding dependency from droneProduct::body::bodyWithLargePayload to droneFeatureModel::droneProductLineFeatureTree::hasPayload;
     }
 
     package <DPL_BA> DroneProductLineBaseArchitecture {       
@@ -88,7 +86,7 @@ package DroneProductLineSharedAssets {
             subject drone : DPL_BA::CommonDrone;
 
             requirement <REQ2> maximumTakeoffWeight {
-                doc /* */
+                doc /* The maximum take off weight of the drone shall not exceed 42 kg. */
                 subject drone : DPL_BA::CommonDrone;
 
                 assert constraint {
